@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        main {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-flow: column;
+            width: 100vw;
+            min-height: 100vh;
+            font-size: 8rem;
+        }
+
+        #glucose {
+            display: block;
+            width: 3em;
+            font-size: 1em;
+            text-align: center;
+            border: 2px solid;
+            border-radius: 5px;
+        }
+
+        p {
+            margin: .5em;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <input id="glucose" type="number" min="0" max="999" onkeyup="onChangeGlucose(event)">
+        <div class="wide">
+            <p>Glucose is
+                <b id="glucoseLevel">0</b>.
+            </p>
+            <p>Take
+                <b id="units">0</b> units.</p>
+            <p id="message"></p>
+        </div>
+    </main>
+    <script>
+        function debounce(fn, ms) {
+            var id;
+            return function () {
+                var context = this;
+                var args = arguments;
+                var handler = function () {
+                    fn.apply(context, args);
+                }
+                clearTimeout(id);
+                id = setTimeout(handler, ms);
+            };
+        }
+
+        function $(id) {
+            return document.getElementById(id);
+        }
+
+        function getValues(level) {
+            if (level > 400) {
+                return { units: 14, message: 'Recheck in 1 hour.' };
+            } else if (level >= 351) {
+                return { units: 12 };
+            } else if (level >= 301) {
+                return { units: 10 };
+            } else if (level >= 251) {
+                return { units: 8 };
+            } else if (level >= 201) {
+                return { units: 6 };
+            } else if (level >= 181) {
+                return { units: 4 };
+            } else if (level >= 141) {
+                if (new Date().getHours() > 20) {
+                    return { units: 0, message: 'Recheck in 4 hours.' };
+                } else {
+                    return { units: 2 };
+                }
+            } else if (level >= 70) {
+                return { units: 0 };
+            } else if (level > 0) {
+                return { units: 0, message: 'Drink orange juice and test every 15 minutes until above 80.' };
+            } else {
+                return { units: 0 }
+            }
+        }
+
+        function changeGlucose(event) {
+            if (event.target.value > 999) {
+                event.target.value = '';
+                $('message').innerHTML = 'Number too high. Try again.'
+                $('glucoseLevel').innerHTML = 0;
+                $('units').innerHTML = 0;
+            } else {
+                var values = getValues(event.target.value);
+                $('glucoseLevel').innerHTML = event.target.value || 0;
+                $('units').innerHTML = values.units;
+                $('message').innerHTML = values.message || '';
+            }
+        }
+
+        var onChangeGlucose = debounce(changeGlucose, 500);
+    </script>
+</body>
+
+</html>
