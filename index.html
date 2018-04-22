@@ -2,6 +2,15 @@
 <html>
 
 <head>
+    <title>Insulin Calculator</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#ffc40d">
+    <meta name="theme-color" content="#ffffff">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat|Open+Sans|Tajawal" rel="stylesheet">
     <style>
         html,
         body {
@@ -10,6 +19,11 @@
         }
 
         main {
+            min-height: 100vh;
+            background-color: #CFDBD5;
+        }
+
+        #calculator {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -17,6 +31,9 @@
             width: 100vw;
             min-height: 100vh;
             font-size: 8rem;
+            font-family: 'Open Sans', sans-serif;
+            background-color: #E8EDDF;
+            color: #222;
         }
 
         #glucose {
@@ -28,24 +45,37 @@
             border-radius: 5px;
         }
 
+        #message {
+            font-size: .9em;
+        }
+
         p {
             margin: .5em;
             text-align: center;
+        }
+
+        .hide {
+            display: none;
         }
     </style>
 </head>
 
 <body>
     <main>
-        <input id="glucose" type="number" min="0" max="999" onkeyup="onChangeGlucose(event)">
-        <div class="wide">
-            <p>Glucose is
-                <b id="glucoseLevel">0</b>.
-            </p>
-            <p>Take
-                <b id="units">0</b> units.</p>
-            <p id="message"></p>
-        </div>
+        <section id="calculator">
+            <input id="glucose" type="number" min="0" max="999" placeholder="000" onkeyup="onChangeGlucose(event)">
+            <div class="wide">
+                <p>Glucose is
+                    <b id="glucoseLevel">0</b>.
+                </p>
+                <div id="unitsMessage" class="hide">
+                    <p>Take
+                        <b id="units">0</b> units.
+                    </p>
+                </div>
+                <p id="message"></p>
+            </div>
+        </section>
     </main>
     <script>
         function debounce(fn, ms) {
@@ -67,7 +97,7 @@
 
         function getValues(level) {
             if (level > 400) {
-                return { units: 14, message: 'Recheck in 1 hour.' };
+                return { units: 14, message: 'Check again in 1 hour.' };
             } else if (level >= 351) {
                 return { units: 12 };
             } else if (level >= 301) {
@@ -80,12 +110,12 @@
                 return { units: 4 };
             } else if (level >= 141) {
                 if (new Date().getHours() > 20) {
-                    return { units: 0, message: 'Recheck in 4 hours.' };
+                    return { units: 0, message: 'Check again in 4 hours.' };
                 } else {
                     return { units: 2 };
                 }
             } else if (level >= 70) {
-                return { units: 0 };
+                return { units: 0, message: 'Good. No action.' };
             } else if (level > 0) {
                 return { units: 0, message: 'Drink orange juice and test every 15 minutes until above 80.' };
             } else {
@@ -94,17 +124,15 @@
         }
 
         function changeGlucose(event) {
+            var values = getValues(event.target.value);
             if (event.target.value > 999) {
+                values = { units: 0, message: 'Number too high. Try again.' }
                 event.target.value = '';
-                $('message').innerHTML = 'Number too high. Try again.'
-                $('glucoseLevel').innerHTML = 0;
-                $('units').innerHTML = 0;
-            } else {
-                var values = getValues(event.target.value);
-                $('glucoseLevel').innerHTML = event.target.value || 0;
-                $('units').innerHTML = values.units;
-                $('message').innerHTML = values.message || '';
             }
+            $('glucoseLevel').innerHTML = event.target.value || 0;
+            $('units').innerHTML = values.units;
+            $('message').innerHTML = values.message || '';
+            $('unitsMessage').classList.toggle('hide', values.units === 0);
         }
 
         var onChangeGlucose = debounce(changeGlucose, 500);
